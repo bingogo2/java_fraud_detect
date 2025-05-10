@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: FraudDetectPoc
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    timeout: 5000ms
+
+aws:
+  region: ${AWS_REGION:us-east-1}
+  accessKeyId: mockAccessKey
+  secretAccessKey: mockSecretKey
+
+  sqs:
+    queueUrl: http://localhost:4566/000000000000/my-transaction-queue.fifo
+    queueName: my-transaction-queue.fifo
+
+  cloudwatch:
+    logGroupName: ${AWS_CLOUDWATCH_LOG_GROUP_NAME:FraudDetectLogGroup}
+    logStreamName: ${AWS_CLOUDWATCH_LOG_STREAM_NAME:FraudDetectLogStream}
+
+localstack:
+  url: http://localhost:4566
+  sqsEnabled: true
+  cloudWatchEnabled: true
