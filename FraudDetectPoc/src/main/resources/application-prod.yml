@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: FraudDetectPoc
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    timeout: 5000ms
+
+aws:
+  region: ${AWS_REGION:us-east-1}
+  accessKeyId:  
+  secretAccessKey: 
+  
+  sqs:
+    queueUrl: ${AWS_SQS_QUEUE_URL:https://}
+    
+  cloudwatch:
+    logGroupName: ${AWS_CLOUDWATCH_LOG_GROUP_NAME:FraudDetectLogGroup}
+    logStreamName: ${AWS_CLOUDWATCH_LOG_STREAM_NAME:FraudDetectLogStreamwtYD}
+
+
