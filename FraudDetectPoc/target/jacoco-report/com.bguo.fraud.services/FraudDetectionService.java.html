@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FraudDetectionService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">FraudDetectPoc</a> &gt; <a href="index.source.html" class="el_package">com.bguo.fraud.services</a> &gt; <span class="el_source">FraudDetectionService.java</span></div><h1>FraudDetectionService.java</h1><pre class="source lang-java linenums">package com.bguo.fraud.services;
+
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import com.bguo.fraud.model.Transaction;
+import com.bguo.fraud.rule.FraudRule;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class FraudDetectionService {
+    private final List&lt;FraudRule&gt; fraudRules;
+<span class="fc" id="L18">    private static final Logger logger = LoggerFactory.getLogger(FraudDetectionService.class);</span>
+
+    public boolean isFraudulent(Transaction tx) {
+        try {
+<span class="fc" id="L22">            return fraudRules.stream()</span>
+<span class="fc" id="L23">                    .anyMatch(rule -&gt; {</span>
+                        try {
+<span class="fc" id="L25">                            return rule.apply(tx);</span>
+<span class="nc" id="L26">                        } catch (Exception e) {</span>
+<span class="nc" id="L27">                            logger.error(&quot;Error applying fraud rule: {} on transaction: {}&quot;, rule.getClass().getSimpleName(), tx, e);</span>
+<span class="nc" id="L28">                            return false; </span>
+                        }
+                    });
+<span class="nc" id="L31">        } catch (Exception e) {</span>
+<span class="nc" id="L32">            logger.error(&quot;Unexpected error occurred while evaluating fraud detection for transaction: {}&quot;, tx, e);</span>
+<span class="nc" id="L33">            throw e; </span>
+        }    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
