@@ -19,17 +19,18 @@ public class FraudDetectionService {
 
     public boolean isFraudulent(Transaction tx) {
         try {
-            return fraudRules.stream()
-                    .anyMatch(rule -> {
-                        try {
-                            return rule.apply(tx);
-                        } catch (Exception e) {
-                            logger.error("Error applying fraud rule: {} on transaction: {}", rule.getClass().getSimpleName(), tx, e);
-                            return false; 
-                        }
-                    });
+            return fraudRules.stream().anyMatch(rule -> {
+                try {
+                    return rule.apply(tx);
+                } catch (Exception e) {
+                    logger.error("Error applying fraud rule: {} on transaction: {}", rule.getClass().getSimpleName(),
+                            tx, e);
+                    return false;
+                }
+            });
         } catch (Exception e) {
             logger.error("Unexpected error occurred while evaluating fraud detection for transaction: {}", tx, e);
-            throw e; 
-        }    }
+            throw e;
+        }
+    }
 }

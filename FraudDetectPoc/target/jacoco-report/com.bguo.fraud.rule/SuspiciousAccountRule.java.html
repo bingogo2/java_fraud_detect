@@ -6,35 +6,40 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.bguo.fraud.model.Transaction;
-import com.bguo.fraud.services.BlacklistService;
+import com.bguo.fraud.services.SuspiciousAccountService;
 
 @Service
 public class SuspiciousAccountRule implements FraudRule {
-    private final String blacklistKey;
-    private final BlacklistService blacklistService;
-<span class="fc" id="L15">    private static final Logger logger = LoggerFactory.getLogger(SuspiciousAccountRule.class);</span>
+    private final String suspiciousAccountKey;
+    private final String suspiciousAccountFileName;
+    private final SuspiciousAccountService suspiciousAccountService;
+<span class="fc" id="L16">    private static final Logger logger = LoggerFactory.getLogger(SuspiciousAccountRule.class);</span>
 
-    public SuspiciousAccountRule(@Value(&quot;${fraud.rules.blacklistKey}&quot;) String blacklistKey,
-<span class="fc" id="L18">                                 BlacklistService blacklistService) {</span>
-<span class="fc" id="L19">        this.blacklistKey = blacklistKey;</span>
-<span class="fc" id="L20">        this.blacklistService = blacklistService;</span>
-<span class="fc" id="L21">    }</span>
+    public SuspiciousAccountRule(@Value(&quot;${fraud.rules.suspiciousAccountKey}&quot;) String suspiciousAccountKey,
+            @Value(&quot;${fraud.rules.suspiciousAccountFileName}&quot;) String suspiciousAccountFileName,
+<span class="fc" id="L20">            SuspiciousAccountService suspiciousAccountService) {</span>
+<span class="fc" id="L21">        this.suspiciousAccountKey = suspiciousAccountKey;</span>
+<span class="fc" id="L22">        this.suspiciousAccountService = suspiciousAccountService;</span>
+<span class="fc" id="L23">        this.suspiciousAccountFileName = suspiciousAccountFileName;</span>
+<span class="fc" id="L24">   }</span>
 
     @Override
     public boolean apply(Transaction tx) {
-<span class="fc" id="L25">        logger.debug(&quot;Applying SuspiciousAccount fraud rule on transaction: {}&quot;, tx);</span>
+<span class="fc" id="L28">        logger.debug(&quot;Applying SuspiciousAccount fraud rule on transaction: {}&quot;, tx);</span>
         try {
-            //check account in the blacklist 
-<span class="fc" id="L28">            boolean isBlacklisted = blacklistService.isBlacklisted(blacklistKey, tx.getAccountId());</span>
-<span class="pc bpc" id="L29" title="1 of 2 branches missed.">            if (isBlacklisted) {</span>
-<span class="fc" id="L30">                logger.debug(&quot;Transaction {} is fraudulent for rule: {}&quot;, tx.getId(), this.getClass().getSimpleName());</span>
+            // check account in the suspiciousAccount list
+<span class="fc" id="L31">            boolean isSuspiciousAccount = suspiciousAccountService.isSuspiciousAccount(suspiciousAccountKey,</span>
+<span class="fc" id="L32">                    tx.getAccountId());</span>
+<span class="fc bfc" id="L33" title="All 2 branches covered.">            if (isSuspiciousAccount) {</span>
+<span class="fc" id="L34">                logger.debug(&quot;Transaction {} is fraudulent for rule: {}&quot;, tx.getId(), this.getClass().getSimpleName());</span>
             } else {
-<span class="nc" id="L32">                logger.debug(&quot;Transaction {} is not fraudulent for rule: {}&quot;, tx.getId(), this.getClass().getSimpleName());</span>
+<span class="fc" id="L36">                logger.debug(&quot;Transaction {} is not fraudulent for rule: {}&quot;, tx.getId(),</span>
+<span class="fc" id="L37">                        this.getClass().getSimpleName());</span>
             }
-<span class="fc" id="L34">            return isBlacklisted;</span>
-<span class="nc" id="L35">        } catch (Exception e) {</span>
-<span class="nc" id="L36">            logger.error(&quot;Error applying SuspiciousAccount fraud rule on transaction: {}&quot;, tx, e);</span>
-<span class="nc" id="L37">            throw e; </span>
+<span class="fc" id="L39">            return isSuspiciousAccount;</span>
+<span class="nc" id="L40">        } catch (Exception e) {</span>
+<span class="nc" id="L41">            logger.error(&quot;Error applying SuspiciousAccount fraud rule on transaction: {}&quot;, tx, e);</span>
+<span class="nc" id="L42">            throw e;</span>
         }
     }
 

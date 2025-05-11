@@ -36,14 +36,15 @@ class FraudDetectionServiceTest {
     @InjectMocks
     private FraudDetectionService fraudDetectionService;
     @InjectMocks
-    private BlacklistService blacklistService;
+    private SuspiciousAccountService suspiciousAccountService;
     @Mock
     private FraudRule amountThresholdRule;  // 模拟黑名单规则
     @Mock
     private FraudRule highFrequencyRule;
     @Mock
     private FraudRule suspiciousAccountRule;
-    private final String BLACK_LIST_KEY = "fraud:blacklist";
+    private final String SUSPICIOUS_ACCOUNT_KEY = "fraud:account";
+    private final String SUSPICIOUS_ACCOUNT_FILE_NAME = "suspiciousAccounts.txt";
 
     @BeforeEach
     void setUp() {
@@ -76,28 +77,25 @@ class FraudDetectionServiceTest {
     }
 
     @Test
-    void testIsFraudulent_blacklistedAccount() {
-        // Create transaction with a blacklisted account
+    void testIsSuspiciousAccount() {
+        // Create transaction with a Suspicious Account List
         Transaction tx = new Transaction();
         tx.setAmount(5000);
         tx.setAccountId("acc_A1b2C3d4");
 
-        // Mock: Simulate adding the account to the blacklist in Redis
-        when(redisTemplate.opsForSet().isMember(BLACK_LIST_KEY, "acc_A1b2C3d4")).thenReturn(true);
+        // Mock: Simulate adding the account to the Suspicious Account List in Redis
+        when(redisTemplate.opsForSet().isMember(SUSPICIOUS_ACCOUNT_KEY, "acc_A1b2C3d4")).thenReturn(true);
         
-        // Mock: Simulate adding the account to the blacklist (typically in your service method)
-        when(redisTemplate.opsForSet().add(BLACK_LIST_KEY, "acc_A1b2C3d4")).thenReturn(1L);
-
-        // Act: Add the account to the blacklist (this step simulates your service logic)
-        blacklistService.addToBlacklist(BLACK_LIST_KEY, "acc_A1b2C3d4");
+        // Mock: Simulate adding the account to the Suspicious Account List (typically in your service method)
+        when(redisTemplate.opsForSet().add(SUSPICIOUS_ACCOUNT_KEY, "acc_A1b2C3d4")).thenReturn(1L);
 
         // Create and inject only the SuspiciousAccountRule
-        SuspiciousAccountRule suspiciousAccountRule = new SuspiciousAccountRule(BLACK_LIST_KEY, blacklistService);
+        SuspiciousAccountRule suspiciousAccountRule = new SuspiciousAccountRule(SUSPICIOUS_ACCOUNT_KEY, SUSPICIOUS_ACCOUNT_FILE_NAME, suspiciousAccountService);
 
         // Create FraudDetectionService with only this rule
         fraudDetectionService = new FraudDetectionService(Arrays.asList(suspiciousAccountRule));
 
-        // Assert: Expect fraud detection due to blacklisted account
+        // Assert: Expect fraud detection due to Suspicious Account List
         assertTrue(fraudDetectionService.isFraudulent(tx));
     }
 

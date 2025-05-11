@@ -1,4 +1,4 @@
-package com.bguo.fraud;
+package com.bguo.fraud.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;

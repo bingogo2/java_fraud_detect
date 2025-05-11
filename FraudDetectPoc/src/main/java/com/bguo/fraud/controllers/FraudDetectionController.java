@@ -16,7 +16,7 @@ public class FraudDetectionController {
         this.fraudDetectionService = fraudDetectionService;
     }
 
-    // POST method to check if a transaction is fraudulent
+    // POST method to check if a transaction is fraud
     @PostMapping("/check")
     public boolean checkFraud(@RequestBody Transaction transaction) {
         return fraudDetectionService.isFraudulent(transaction);

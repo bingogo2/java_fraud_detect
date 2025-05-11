@@ -16,7 +16,7 @@ public class FraudDetectionController {
 <span class="fc" id="L16">        this.fraudDetectionService = fraudDetectionService;</span>
 <span class="fc" id="L17">    }</span>
 
-    // POST method to check if a transaction is fraudulent
+    // POST method to check if a transaction is fraud
     @PostMapping(&quot;/check&quot;)
     public boolean checkFraud(@RequestBody Transaction transaction) {
 <span class="fc" id="L22">        return fraudDetectionService.isFraudulent(transaction);</span>

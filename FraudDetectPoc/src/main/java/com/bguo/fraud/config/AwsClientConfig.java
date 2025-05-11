@@ -1,4 +1,4 @@
-package com.bguo.fraud;
+package com.bguo.fraud.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
