@@ -8,9 +8,11 @@ import org.springframework.context.annotation.Profile;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import lombok.extern.slf4j.Slf4j;
 import redis.embedded.RedisServer;
 @Configuration
 @Profile("dev")
+@Slf4j
 public class EmbeddedRedisConfig {
 
     private RedisServer redisServer;
@@ -21,9 +23,9 @@ public class EmbeddedRedisConfig {
             // start Redis in dev environment.
             redisServer = new RedisServer(6379);
             redisServer.start();
-            System.out.println("Embedded Redis started on port 6379.");
+            log.debug("Embedded Redis started on port 6379.");
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Failed to start embedded Redis", e);
             throw new RuntimeException("Failed to start embedded Redis", e);
         }
     }
@@ -33,9 +35,9 @@ public class EmbeddedRedisConfig {
         if (redisServer != null) {
             try {
                 redisServer.stop();
-                System.out.println("Embedded Redis stopped.");
+                log.info("Embedded Redis stopped.");
             } catch (IOException e) {
-                e.printStackTrace();
+                log.warn("Failed to stop embedded Redis", e);
             }
         }
     }

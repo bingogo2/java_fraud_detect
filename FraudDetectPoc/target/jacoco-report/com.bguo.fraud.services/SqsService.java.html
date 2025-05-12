@@ -3,18 +3,25 @@
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.bguo.fraud.model.Transaction;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
+import software.amazon.awssdk.services.sqs.model.SqsException;
 
 @Service
+@RequiredArgsConstructor
+<span class="nc" id="L24">@Slf4j</span>
 public class SqsService {
 
     @Value(&quot;${aws.sqs.queueUrl}&quot;)
@@ -25,51 +32,60 @@ public class SqsService {
     
     private final SqsClient sqsClient;
     private final CloudWatchService cloudWatchService;
-
-<span class="fc" id="L29">    public SqsService(SqsClient sqsClient, CloudWatchService cloudWatchService) {</span>
-<span class="fc" id="L30">        this.sqsClient = sqsClient;</span>
-<span class="fc" id="L31">        this.cloudWatchService = cloudWatchService;</span>
-<span class="fc" id="L32">    }</span>
-
-    public void processMessages() {
-<span class="fc" id="L35">        ReceiveMessageRequest receiveMessageRequest = ReceiveMessageRequest.builder()</span>
-<span class="fc" id="L36">                .queueUrl(queueUrl)</span>
-<span class="fc" id="L37">                .maxNumberOfMessages(10)</span>
-<span class="fc" id="L38">                .waitTimeSeconds(20)</span>
-<span class="fc" id="L39">                .build();</span>
-
-<span class="fc" id="L41">        ReceiveMessageResponse response = sqsClient.receiveMessage(receiveMessageRequest);</span>
-
-<span class="fc" id="L43">        List&lt;Message&gt; messages = response.messages();</span>
-<span class="fc bfc" id="L44" title="All 2 branches covered.">        for (Message message : messages) {</span>
-<span class="fc" id="L45">            System.out.println(&quot;Received message: &quot; + message.body());</span>
-            // Assuming message body is a JSON representing the Transaction object
-<span class="fc" id="L47">            Transaction transaction = parseTransaction(message.body());</span>
-
-            // Log the transaction data to CloudWatch
-<span class="fc" id="L50">            cloudWatchService.logTransaction(transaction);</span>
-            
-            // Delete the message after processing
-<span class="fc" id="L53">            deleteMessage(message);</span>
-<span class="fc" id="L54">        }</span>
-<span class="fc" id="L55">    }</span>
-
-    private Transaction parseTransaction(String messageBody) {
+    
+    public void sendTransactionToQueue(Transaction transaction) {
         try {
-<span class="fc" id="L59">            return new ObjectMapper().readValue(messageBody, Transaction.class);</span>
-<span class="fc" id="L60">        } catch (Exception e) {</span>
-            // Handle the error if parsing fails, perhaps logging it
-            // e.printStackTrace();
-<span class="fc" id="L63">            return null;</span>
+<span class="nc" id="L38">            String messageBody = new ObjectMapper().writeValueAsString(transaction);</span>
+<span class="nc" id="L39">            SendMessageRequest sendMessageRequest = SendMessageRequest.builder()</span>
+<span class="nc" id="L40">                .queueUrl(queueUrl)</span>
+<span class="nc" id="L41">                .messageBody(messageBody)</span>
+<span class="nc" id="L42">                .messageGroupId(transaction.getId()) // Add MessageGroupId</span>
+<span class="nc" id="L43">                .build();</span>
+
+<span class="nc" id="L45">            sqsClient.sendMessage(sendMessageRequest);</span>
+<span class="nc" id="L46">            log.info(&quot;Transaction sent to SQS queue: {}&quot;, transaction);</span>
+<span class="nc" id="L47">        } catch (Exception e) {</span>
+<span class="nc" id="L48">            log.error(&quot;Failed to send transaction to SQS&quot;, e);</span>
         }
-    }
+<span class="nc" id="L50">    }</span>
+    
+    @Scheduled(fixedRate = 10000) //fixed poll each 10 second.   
+    public void processMessages() {
+<span class="nc" id="L54">        ReceiveMessageRequest receiveMessageRequest = ReceiveMessageRequest.builder()</span>
+<span class="nc" id="L55">                .queueUrl(queueUrl)</span>
+<span class="nc" id="L56">                .maxNumberOfMessages(10)</span>
+<span class="nc" id="L57">                .waitTimeSeconds(20)</span>
+<span class="nc" id="L58">                .build();</span>
+        try {
+<span class="nc" id="L60">            ReceiveMessageResponse response = sqsClient.receiveMessage(receiveMessageRequest);</span>
+<span class="nc" id="L61">            log.debug(&quot;SQS response exists or not: {}&quot;, response.hasMessages());</span>
+
+<span class="nc" id="L63">            List&lt;Message&gt; messages = response.messages();</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">            for (Message message : messages) {</span>
+<span class="nc" id="L65">                log.info(&quot;Received message: {}&quot;, message.body());</span>
+                try {
+<span class="nc" id="L67">                    Transaction transaction = new ObjectMapper().readValue(message.body(), Transaction.class);</span>
+<span class="nc" id="L68">                    cloudWatchService.logTransaction(transaction);</span>
+<span class="nc" id="L69">                } catch (Exception e) {</span>
+<span class="nc" id="L70">                    log.error(&quot;Error processing message&quot;, e);</span>
+                } finally {
+<span class="nc" id="L72">                    deleteMessage(message);</span>
+                }
+            }
+<span class="nc" id="L75">        } catch (SqsException e) {</span>
+<span class="nc" id="L76">            log.error(&quot;Error occurred while receiving messages from SQS. AWS Error: {}&quot;, e.awsErrorDetails().errorMessage());</span>
+<span class="nc" id="L77">        } catch (Exception e) {</span>
+<span class="nc" id="L78">            log.error(&quot;Error processing message&quot;, e);</span>
+        }
+<span class="nc" id="L80">    }</span>
 
     private void deleteMessage(Message message) {
-<span class="fc" id="L68">        DeleteMessageRequest deleteMessageRequest = DeleteMessageRequest.builder()</span>
-<span class="fc" id="L69">                .queueUrl(queueUrl)</span>
-<span class="fc" id="L70">                .receiptHandle(message.receiptHandle())</span>
-<span class="fc" id="L71">                .build();</span>
-<span class="fc" id="L72">        sqsClient.deleteMessage(deleteMessageRequest);</span>
-<span class="fc" id="L73">    }</span>
+<span class="nc" id="L83">        DeleteMessageRequest deleteMessageRequest = DeleteMessageRequest.builder()</span>
+<span class="nc" id="L84">                .queueUrl(queueUrl)</span>
+<span class="nc" id="L85">                .receiptHandle(message.receiptHandle())</span>
+<span class="nc" id="L86">                .build();</span>
+<span class="nc" id="L87">        sqsClient.deleteMessage(deleteMessageRequest);</span>
+<span class="nc" id="L88">        log.info(&quot;Deleted message from SQS: {}&quot;, message.receiptHandle());</span>
+<span class="nc" id="L89">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

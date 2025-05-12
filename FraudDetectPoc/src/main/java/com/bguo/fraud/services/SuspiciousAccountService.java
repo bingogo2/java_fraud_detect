@@ -33,11 +33,12 @@ public class SuspiciousAccountService {
             List<String> accounts = FileCopyUtils.copyToString(new InputStreamReader(resource.getInputStream()))
                 .lines()
                 .filter(line -> !line.isBlank() && !line.startsWith("#"))
+                .map(String::toLowerCase) //save as lower case
                 .toList();
 
             if (!accounts.isEmpty()) {
                 redisTemplate.opsForSet().add(redisKey, accounts.toArray(new String[0]));
-                log.info("Loaded {} accounts to Redis suspiciousAccount", accounts.size());
+                log.info("Loaded {} accounts (lowercase) to Redis key: {}", accounts.size(), redisKey);
             }
         } catch (IOException e) {
             log.error("Suspicious Account List initialization failed", e);
@@ -46,8 +47,14 @@ public class SuspiciousAccountService {
     }
 
     public boolean isSuspiciousAccount(String suspiciousAccountKey, String accountId) {
+        if (accountId == null) {
+            return false;
+        }
         return Boolean.TRUE.equals(
-            redisTemplate.opsForSet().isMember(suspiciousAccountKey, accountId)
+                redisTemplate.opsForSet().isMember(
+                        suspiciousAccountKey, 
+                        accountId.toLowerCase() // convert to lower case
+                    )
         );
     }
 }

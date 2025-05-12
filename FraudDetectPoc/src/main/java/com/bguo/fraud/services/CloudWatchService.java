@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import com.bguo.fraud.model.Transaction;
 
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
 import software.amazon.awssdk.services.cloudwatchlogs.model.CreateLogGroupRequest;
@@ -18,6 +20,8 @@ import software.amazon.awssdk.services.cloudwatchlogs.model.InputLogEvent;
 import software.amazon.awssdk.services.cloudwatchlogs.model.PutLogEventsRequest;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class CloudWatchService {
 
     @Value("${aws.region}")
@@ -29,10 +33,8 @@ public class CloudWatchService {
     @Value("${aws.cloudwatch.logStreamName}")
     private String logStreamName;
 
+    private final FraudDetectionService fraudDetectionService;
     private CloudWatchLogsClient cloudWatchLogsClient;
-
-    public CloudWatchService() {
-    }
 
     @PostConstruct
     public void init() {
@@ -56,10 +58,10 @@ public class CloudWatchService {
                         .logGroupName(logGroupName)
                         .build();
                 cloudWatchLogsClient.createLogGroup(createLogGroupRequest);
-                System.out.println("Created log group: " + logGroupName);
+                log.info("Created log group: {}", logGroupName);
             }
         } catch (Exception e) {
-            System.err.println("Error checking log group: " + e.getMessage());
+            log.error("Error checking log group: {}", e.getMessage(), e);
         }
     }
 
@@ -78,32 +80,39 @@ public class CloudWatchService {
                         .logStreamName(logStreamName)
                         .build();
                 cloudWatchLogsClient.createLogStream(createLogStreamRequest);
-                System.out.println("Created log stream: " + logStreamName);
+                log.info("Created log stream: {}", logStreamName);
             }
         } catch (Exception e) {
-            System.err.println("Error checking log stream: " + e.getMessage());
+            log.error("Error checking log stream: {}", e.getMessage(), e);
         }
     }
 
     public void logTransaction(Transaction transaction) {
         try {
+            boolean isFraudulent = fraudDetectionService.isFraudulent(transaction); // Check fraud status here
             long timestamp = System.currentTimeMillis();
+            String fraudStatus = isFraudulent ? "Fraudulent" : "Normal";
+            // If transaction is invalid, log a warning and proceed with logging to CloudWatch
+            if (transaction.getAmount() <= 0) {
+                log.warn("Invalid transaction amount: {} for transaction: {}", transaction.getAmount(), transaction);
+                fraudStatus = "Invalid"; 
+            }
 
+            // Create the log event with the fraud status or invalid status
             InputLogEvent logEvent = InputLogEvent.builder()
-                    .message("Processed Transaction: " + transaction)
+                    .message("Transaction processed: " + transaction + ", Fraud Status: " + fraudStatus)
                     .timestamp(timestamp)
                     .build();
-
+            // Send the log event to CloudWatch
             PutLogEventsRequest request = PutLogEventsRequest.builder()
                     .logGroupName(logGroupName)
                     .logStreamName(logStreamName)
                     .logEvents(logEvent)
                     .build();
-
             cloudWatchLogsClient.putLogEvents(request);
-            System.out.println("Logged transaction to CloudWatch: " + transaction.getId());
+            log.info("Logged transaction to CloudWatch: {} - Fraud Status: {}", transaction.getId(), fraudStatus);
         } catch (Exception e) {
-            System.err.println("Error logging transaction: " + e.getMessage());
+            log.error("Error logging transaction to CloudWatch: {}", e.getMessage(), e);
         }
     }
 }

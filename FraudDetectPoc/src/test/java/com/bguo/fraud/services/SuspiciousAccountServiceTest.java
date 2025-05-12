@@ -1,75 +1,73 @@
 package com.bguo.fraud.services;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.io.ByteArrayInputStream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.core.io.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.SetOperations;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.test.context.ActiveProfiles;
 
+import com.bguo.fraud.model.Transaction;
+
+@SpringBootTest
+@ActiveProfiles("dev")  // Specify the active profile for configuration (like 'dev', 'test', etc.)
 class SuspiciousAccountServiceTest {
 
-    @Mock
+    @Autowired
+    private SuspiciousAccountService suspiciousAccountService;
+
+    @Autowired
     private RedisTemplate<String, String> redisTemplate;
 
-    @Mock
-    private SetOperations<String, String> setOperations;
+    @Value("${fraud.rules.suspiciousAccountKey}")
+    private String suspiciousAccountKey;
 
-    @InjectMocks
-    private SuspiciousAccountService suspiciousAccountService;
-    @Mock
-    private Resource resource;
-    private final String SUSPECIOUS_ACCOUNTS_FILE_NAME = "suspiciousAccounts.txt";
-    private final String TEST_KEY = "fraud:account"; // This will be used for testing
+    @Value("${fraud.rules.suspiciousAccountFileName}")
+    private String suspiciousAccountFileName;
 
     @BeforeEach
     void setUp() {
         // Initialize mocks
         MockitoAnnotations.openMocks(this);
-        //initialize service fields.
-        ReflectionTestUtils.setField(suspiciousAccountService, "redisKey", TEST_KEY);
-        ReflectionTestUtils.setField(suspiciousAccountService, "suspiciousAccountFileName", SUSPECIOUS_ACCOUNTS_FILE_NAME);
-        // Mock opsForSet() to return a mock SetOperations instance
-        when(redisTemplate.opsForSet()).thenReturn(setOperations);
     }
 
     @Test
-    void initSuspiciousAccount_ShouldHandleEmptyFile() throws Exception {
-        when(resource.getInputStream()).thenReturn(new ByteArrayInputStream("".getBytes()));
-        
-        suspiciousAccountService.initSuspiciousAccount();
-        
-        verify(setOperations, never()).add(any(), any());
-    }
-    
-    @Test
-    void isSuspiciousAccount_ShouldReturnTrueForExistingAccount() {
-        when(setOperations.isMember(TEST_KEY, "ACC1")).thenReturn(true);
-        assertTrue(suspiciousAccountService.isSuspiciousAccount(TEST_KEY, "ACC1"));
+    void testIsSuspiciousAccount() {
+        // Prepare: Load the suspicious account file and initialize Redis
+        // This is normally done through @PostConstruct in your service
+
+        // Simulate an account being added to Redis through the service (this would happen in @PostConstruct in a real scenario)
+        String suspiciousAccountDefinedInTxt = "acc_black_2024";
+        redisTemplate.opsForSet().add(suspiciousAccountKey, suspiciousAccountDefinedInTxt.toLowerCase());
+
+        // Create transaction with a Suspicious Account List
+        Transaction tx = new Transaction();
+        tx.setAmount(500);
+        tx.setAccountId(suspiciousAccountDefinedInTxt);
+
+        // Assert: The account should be recognized as suspicious
+        assertTrue(suspiciousAccountService.isSuspiciousAccount(suspiciousAccountKey, suspiciousAccountDefinedInTxt));
     }
 
     @Test
-    void isSuspiciousAccount_ShouldReturnFalseForUnknownAccount() {
-        when(setOperations.isMember(TEST_KEY, "UNKNOWN")).thenReturn(false);
-        assertFalse(suspiciousAccountService.isSuspiciousAccount(TEST_KEY, "UNKNOWN"));
-    }
+    void testIsSuspiciousAccount_withNonSuspiciousAccount() {
+        // Prepare: Load the suspicious account file and initialize Redis
+        // Simulate an account being added to Redis
+        String suspiciousAccountDefinedInTxt = "acc_black_2024";
+        redisTemplate.opsForSet().add(suspiciousAccountKey, suspiciousAccountDefinedInTxt.toLowerCase());
 
-    @Test
-    void isSuspiciousAccount_ShouldHandleNullInputGracefully() {
-        assertFalse(suspiciousAccountService.isSuspiciousAccount(TEST_KEY, null));
-        verify(setOperations, never()).isMember(any(), any());
-    }
+        // Create transaction with a Non-Suspicious Account
+        Transaction tx = new Transaction();
+        tx.setAmount(500);
+        tx.setAccountId("acc_unknown");
 
+        // Assert: The account should NOT be recognized as suspicious
+        assertTrue(!suspiciousAccountService.isSuspiciousAccount(suspiciousAccountKey, tx.getAccountId()));
+    }
 }

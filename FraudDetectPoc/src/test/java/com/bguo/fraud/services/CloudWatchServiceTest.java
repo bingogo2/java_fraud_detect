@@ -3,6 +3,7 @@ package com.bguo.fraud.services;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,9 @@ class CloudWatchServiceTest {
     @Mock
     private CloudWatchLogsClient cloudWatchLogsClient;  // Mock CloudWatchLogsClient
     
+    @Mock
+    private FraudDetectionService fraudDetectionService;  // Mock FraudDetectionService
+    
     @InjectMocks
     private CloudWatchService cloudWatchService;
 
@@ -27,7 +31,6 @@ class CloudWatchServiceTest {
     public void setUp() {
         // Initialize mocks
         MockitoAnnotations.openMocks(this);
-
     }
 
     @Test
@@ -44,17 +47,19 @@ class CloudWatchServiceTest {
             "PURCHASE"
         );
 
+        // Mock the fraud detection service to return false (not fraudulent)
+        when(fraudDetectionService.isFraudulent(transaction)).thenReturn(false);
+
         // Act: Log the transaction to CloudWatch
         cloudWatchService.logTransaction(transaction);
 
-        // Verify the log event is sent to CloudWatch
+        // Assert: Verify the log event is sent to CloudWatch
         verify(cloudWatchLogsClient, times(1)).putLogEvents(any(PutLogEventsRequest.class)); 
-
     }
 
     @Test
     public void testLogTransaction_invalidTransaction() {
-     // Arrange: Create a malformed transaction (for testing invalid input)
+        // Arrange: Create a malformed transaction (for testing invalid input)
         Transaction invalidTransaction = new Transaction(
             "tx_invalid",  // Invalid ID format
             "acc_invalid", // Invalid account format
@@ -66,12 +71,13 @@ class CloudWatchServiceTest {
             "PURCHASE"
         );
 
+        // Mock the fraud detection service to return false (not fraudulent)
+        when(fraudDetectionService.isFraudulent(invalidTransaction)).thenReturn(false);
+
         // Act: Attempt to log the invalid transaction
-        // This should not throw an exception, but you can handle the error internally within the logTransaction method
         cloudWatchService.logTransaction(invalidTransaction);
 
-        // Assert: Verify that the cloudWatchLogsClient.putLogEvents was still called
-        // Even if the transaction is invalid, we expect logging to occur, so verify the interaction with CloudWatchLogsClient
-        verify(cloudWatchLogsClient, times(1)).putLogEvents(any(PutLogEventsRequest.class));
+        // Assert: Verify the cloudWatchLogsClient.putLogEvents was still called
+        verify(cloudWatchLogsClient, times(1)).putLogEvents(any(PutLogEventsRequest.class)); 
     }
 }

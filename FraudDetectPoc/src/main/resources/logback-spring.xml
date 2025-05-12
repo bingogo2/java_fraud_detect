@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Console Appender: Log to the console -->
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level [%t] %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- File Appender: Log to a file -->
+    <appender name="File" class="ch.qos.logback.core.FileAppender">
+        <file>logs/app.log</file> <!-- Log file location -->
+        <append>true</append> <!-- Append to file (do not overwrite) -->
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level [%t] %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Root Logger Configuration (default for everything) -->
+    <root level="info"> <!-- Set the root logger level to INFO -->
+        <appender-ref ref="Console"/>
+        <appender-ref ref="File"/>
+    </root>
+
+    <!-- Specific Logger Configuration for your business logic (debug level) -->
+    <logger name="com.bguo.fraud" level="debug"> <!-- Business logic logger -->
+        <appender-ref ref="Console"/>
+        <appender-ref ref="File"/>
+    </logger>
+
+    <!-- Adjusting the level for Spring Boot Framework logs -->
+    <logger name="org.springframework.boot" level="info"> <!-- Spring Boot logs at INFO level -->
+        <appender-ref ref="Console"/>
+        <appender-ref ref="File"/>
+    </logger>
+
+    <!-- Adjusting the level for Spring Framework logs -->
+    <logger name="org.springframework" level="warn"> <!-- Spring Framework logs at WARN level -->
+        <appender-ref ref="Console"/>
+        <appender-ref ref="File"/>
+    </logger>
+
+    <!-- Logging for other common libraries -->
+    <logger name="org.hibernate" level="warn"> <!-- Hibernate logs at WARN level -->
+        <appender-ref ref="Console"/>
+        <appender-ref ref="File"/>
+    </logger>
+    
+    <!-- Logging for Apache Tomcat (internal server logs) -->
+    <logger name="org.apache.catalina" level="warn"> <!-- Tomcat logs at WARN level -->
+        <appender-ref ref="Console"/>
+        <appender-ref ref="File"/>
+    </logger>
+
+    <!-- Logging for SLF4J (if any SLF4J-specific messages appear) -->
+    <logger name="org.slf4j" level="warn"> <!-- SLF4J internal logs at WARN level -->
+        <appender-ref ref="Console"/>
+        <appender-ref ref="File"/>
+    </logger>
+
+</configuration>

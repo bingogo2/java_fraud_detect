@@ -145,6 +145,7 @@
                 <configuration>
                     <!-- Ensure Surefire runs tests in separate forks -->
                     <forkCount>1</forkCount> <!-- Ensure tests run in separate forks -->
+                    <reuseForks>false</reuseForks> <!-- Do not reuse forks between tests -->
                     <argLine>-javaagent:${settings.localRepository}/org/jacoco/org.jacoco.agent/0.8.13/org.jacoco.agent-0.8.13-runtime.jar=destfile=${project.build.directory}/jacoco.exec</argLine>
                 </configuration>
             </plugin>
