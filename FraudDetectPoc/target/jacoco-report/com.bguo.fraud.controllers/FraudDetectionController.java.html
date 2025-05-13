@@ -18,16 +18,16 @@ public class FraudDetectionController {
     private final SqsService sqsService;
 
     @Autowired
-<span class="nc" id="L21">    public FraudDetectionController(FraudDetectionService fraudDetectionService, SqsService sqsService) {</span>
-<span class="nc" id="L22">        this.fraudDetectionService = fraudDetectionService;</span>
-<span class="nc" id="L23">        this.sqsService = sqsService;</span>
-<span class="nc" id="L24">    }</span>
+<span class="fc" id="L21">    public FraudDetectionController(FraudDetectionService fraudDetectionService, SqsService sqsService) {</span>
+<span class="fc" id="L22">        this.fraudDetectionService = fraudDetectionService;</span>
+<span class="fc" id="L23">        this.sqsService = sqsService;</span>
+<span class="fc" id="L24">    }</span>
 
     // POST method to check if a transaction is fraud
     @PostMapping(&quot;/check&quot;)
     public boolean checkFraud(@RequestBody Transaction transaction) {
-<span class="nc" id="L29">        sqsService.sendTransactionToQueue(transaction);</span>
-<span class="nc" id="L30">        return fraudDetectionService.isFraudulent(transaction);</span>
+<span class="fc" id="L29">        sqsService.sendTransactionToQueue(transaction);</span>
+<span class="fc" id="L30">        return fraudDetectionService.isFraudulent(transaction);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

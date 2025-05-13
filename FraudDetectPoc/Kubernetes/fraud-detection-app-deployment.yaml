@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fraud-detection-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: fraud-detection-app
+  template:
+    metadata:
+      labels:
+        app: fraud-detection-app
+    spec:
+      containers:
+        - name: fraud-detection-app
+          image: 183150676580.dkr.ecr.us-east-1.amazonaws.com/bguo/fraud:latest
+          ports:
+            - containerPort: 8081
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            - name: SPRING_REDIS_HOST
+              value: "54.226.160.110"
+            - name: SPRING_REDIS_PORT
+              value: "6379"
+            - name: AWS_REGION
+              value: us-east-1
+            - name: AWS_SQS_QUEUE_URL
+              value: https://sqs.us-east-1.amazonaws.com/183150676580/my-transaction-queue.fifo
+            - name: AWS_CLOUDWATCH_LOG_GROUP_NAME
+              value: FraudDetectLogGroup
+            - name: AWS_CLOUDWATCH_LOG_STREAM_NAME
+              value: FraudDetectLogStream
+            - name: FRAUD_RULES_AMOUNT_THRESHOLD
+              value: "10000"
+            - name: FRAUD_RULES_FREQUENCY_THRESHOLD
+              value: "5"
+            - name: FRAUD_RULES_SUSPICIOUS_ACCOUNT_KEY
+              value: "fraud:account"
+            - name: FRAUD_RULES_SUSPICIOUS_ACCOUNT_FILENAME
+              value: "suspiciousAccounts.txt"
+          envFrom:
+            - secretRef:
+                name: aws-credentials-secret

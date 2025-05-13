@@ -21,7 +21,7 @@ import software.amazon.awssdk.services.cloudwatchlogs.model.PutLogEventsRequest;
 
 @Service
 @RequiredArgsConstructor
-<span class="nc" id="L24">@Slf4j</span>
+<span class="fc" id="L24">@Slf4j</span>
 public class CloudWatchService {
 
     @Value(&quot;${aws.region}&quot;)
@@ -38,43 +38,43 @@ public class CloudWatchService {
 
     @PostConstruct
     public void init() {
-<span class="nc" id="L41">        cloudWatchLogsClient = CloudWatchLogsClient.builder()</span>
-<span class="nc" id="L42">                .region(Region.of(region))</span>
-<span class="nc" id="L43">                .build();</span>
-<span class="nc" id="L44">        createLogGroupIfNotExists();</span>
-<span class="nc" id="L45">        createLogStreamIfNotExists();</span>
-<span class="nc" id="L46">    }</span>
+<span class="fc" id="L41">        cloudWatchLogsClient = CloudWatchLogsClient.builder()</span>
+<span class="fc" id="L42">                .region(Region.of(region))</span>
+<span class="fc" id="L43">                .build();</span>
+<span class="fc" id="L44">        createLogGroupIfNotExists();</span>
+<span class="fc" id="L45">        createLogStreamIfNotExists();</span>
+<span class="fc" id="L46">    }</span>
 
     private void createLogGroupIfNotExists() {
         try {
-<span class="nc" id="L50">            DescribeLogGroupsRequest describeLogGroupsRequest = DescribeLogGroupsRequest.builder()</span>
-<span class="nc" id="L51">                    .logGroupNamePrefix(logGroupName)</span>
-<span class="nc" id="L52">                    .build();</span>
+<span class="fc" id="L50">            DescribeLogGroupsRequest describeLogGroupsRequest = DescribeLogGroupsRequest.builder()</span>
+<span class="fc" id="L51">                    .logGroupNamePrefix(logGroupName)</span>
+<span class="fc" id="L52">                    .build();</span>
 
-<span class="nc" id="L54">            DescribeLogGroupsResponse result = cloudWatchLogsClient.describeLogGroups(describeLogGroupsRequest);</span>
+<span class="fc" id="L54">            DescribeLogGroupsResponse result = cloudWatchLogsClient.describeLogGroups(describeLogGroupsRequest);</span>
 
-<span class="nc bnc" id="L56" title="All 2 branches missed.">            if (result.logGroups().isEmpty()) {</span>
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">            if (result.logGroups().isEmpty()) {</span>
 <span class="nc" id="L57">                CreateLogGroupRequest createLogGroupRequest = CreateLogGroupRequest.builder()</span>
 <span class="nc" id="L58">                        .logGroupName(logGroupName)</span>
 <span class="nc" id="L59">                        .build();</span>
 <span class="nc" id="L60">                cloudWatchLogsClient.createLogGroup(createLogGroupRequest);</span>
 <span class="nc" id="L61">                log.info(&quot;Created log group: {}&quot;, logGroupName);</span>
             }
-<span class="nc" id="L63">        } catch (Exception e) {</span>
-<span class="nc" id="L64">            log.error(&quot;Error checking log group: {}&quot;, e.getMessage(), e);</span>
-        }
-<span class="nc" id="L66">    }</span>
+<span class="fc" id="L63">        } catch (Exception e) {</span>
+<span class="fc" id="L64">            log.error(&quot;Error checking log group: {}&quot;, e.getMessage(), e);</span>
+<span class="fc" id="L65">        }</span>
+<span class="fc" id="L66">    }</span>
 
     private void createLogStreamIfNotExists() {
         try {
-<span class="nc" id="L70">            DescribeLogStreamsRequest describeLogStreamsRequest = DescribeLogStreamsRequest.builder()</span>
-<span class="nc" id="L71">                    .logGroupName(logGroupName)</span>
-<span class="nc" id="L72">                    .logStreamNamePrefix(logStreamName)</span>
-<span class="nc" id="L73">                    .build();</span>
+<span class="fc" id="L70">            DescribeLogStreamsRequest describeLogStreamsRequest = DescribeLogStreamsRequest.builder()</span>
+<span class="fc" id="L71">                    .logGroupName(logGroupName)</span>
+<span class="fc" id="L72">                    .logStreamNamePrefix(logStreamName)</span>
+<span class="fc" id="L73">                    .build();</span>
 
-<span class="nc" id="L75">            DescribeLogStreamsResponse result = cloudWatchLogsClient.describeLogStreams(describeLogStreamsRequest);</span>
+<span class="fc" id="L75">            DescribeLogStreamsResponse result = cloudWatchLogsClient.describeLogStreams(describeLogStreamsRequest);</span>
 
-<span class="nc bnc" id="L77" title="All 2 branches missed.">            if (result.logStreams().isEmpty()) {</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">            if (result.logStreams().isEmpty()) {</span>
 <span class="nc" id="L78">                CreateLogStreamRequest createLogStreamRequest = CreateLogStreamRequest.builder()</span>
 <span class="nc" id="L79">                        .logGroupName(logGroupName)</span>
 <span class="nc" id="L80">                        .logStreamName(logStreamName)</span>
@@ -82,38 +82,38 @@ public class CloudWatchService {
 <span class="nc" id="L82">                cloudWatchLogsClient.createLogStream(createLogStreamRequest);</span>
 <span class="nc" id="L83">                log.info(&quot;Created log stream: {}&quot;, logStreamName);</span>
             }
-<span class="nc" id="L85">        } catch (Exception e) {</span>
-<span class="nc" id="L86">            log.error(&quot;Error checking log stream: {}&quot;, e.getMessage(), e);</span>
-        }
-<span class="nc" id="L88">    }</span>
+<span class="fc" id="L85">        } catch (Exception e) {</span>
+<span class="fc" id="L86">            log.error(&quot;Error checking log stream: {}&quot;, e.getMessage(), e);</span>
+<span class="fc" id="L87">        }</span>
+<span class="fc" id="L88">    }</span>
 
     public void logTransaction(Transaction transaction) {
         try {
-<span class="nc" id="L92">            boolean isFraudulent = fraudDetectionService.isFraudulent(transaction); // Check fraud status here</span>
-<span class="nc" id="L93">            long timestamp = System.currentTimeMillis();</span>
-<span class="nc bnc" id="L94" title="All 2 branches missed.">            String fraudStatus = isFraudulent ? &quot;Fraudulent&quot; : &quot;Normal&quot;;</span>
+<span class="fc" id="L92">            boolean isFraudulent = fraudDetectionService.isFraudulent(transaction); // Check fraud status here</span>
+<span class="fc" id="L93">            long timestamp = System.currentTimeMillis();</span>
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">            String fraudStatus = isFraudulent ? &quot;Fraudulent&quot; : &quot;Normal&quot;;</span>
             // If transaction is invalid, log a warning and proceed with logging to CloudWatch
-<span class="nc bnc" id="L96" title="All 2 branches missed.">            if (transaction.getAmount() &lt;= 0) {</span>
-<span class="nc" id="L97">                log.warn(&quot;Invalid transaction amount: {} for transaction: {}&quot;, transaction.getAmount(), transaction);</span>
-<span class="nc" id="L98">                fraudStatus = &quot;Invalid&quot;; </span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">            if (transaction.getAmount() &lt;= 0) {</span>
+<span class="fc" id="L97">                log.warn(&quot;Invalid transaction amount: {} for transaction: {}&quot;, transaction.getAmount(), transaction);</span>
+<span class="fc" id="L98">                fraudStatus = &quot;Invalid&quot;; </span>
             }
 
             // Create the log event with the fraud status or invalid status
-<span class="nc" id="L102">            InputLogEvent logEvent = InputLogEvent.builder()</span>
-<span class="nc" id="L103">                    .message(&quot;Transaction processed: &quot; + transaction + &quot;, Fraud Status: &quot; + fraudStatus)</span>
-<span class="nc" id="L104">                    .timestamp(timestamp)</span>
-<span class="nc" id="L105">                    .build();</span>
+<span class="fc" id="L102">            InputLogEvent logEvent = InputLogEvent.builder()</span>
+<span class="fc" id="L103">                    .message(&quot;Transaction processed: &quot; + transaction + &quot;, Fraud Status: &quot; + fraudStatus)</span>
+<span class="fc" id="L104">                    .timestamp(timestamp)</span>
+<span class="fc" id="L105">                    .build();</span>
             // Send the log event to CloudWatch
-<span class="nc" id="L107">            PutLogEventsRequest request = PutLogEventsRequest.builder()</span>
-<span class="nc" id="L108">                    .logGroupName(logGroupName)</span>
-<span class="nc" id="L109">                    .logStreamName(logStreamName)</span>
-<span class="nc" id="L110">                    .logEvents(logEvent)</span>
-<span class="nc" id="L111">                    .build();</span>
+<span class="fc" id="L107">            PutLogEventsRequest request = PutLogEventsRequest.builder()</span>
+<span class="fc" id="L108">                    .logGroupName(logGroupName)</span>
+<span class="fc" id="L109">                    .logStreamName(logStreamName)</span>
+<span class="fc" id="L110">                    .logEvents(logEvent)</span>
+<span class="fc" id="L111">                    .build();</span>
 <span class="nc" id="L112">            cloudWatchLogsClient.putLogEvents(request);</span>
 <span class="nc" id="L113">            log.info(&quot;Logged transaction to CloudWatch: {} - Fraud Status: {}&quot;, transaction.getId(), fraudStatus);</span>
-<span class="nc" id="L114">        } catch (Exception e) {</span>
-<span class="nc" id="L115">            log.error(&quot;Error logging transaction to CloudWatch: {}&quot;, e.getMessage(), e);</span>
-        }
-<span class="nc" id="L117">    }</span>
+<span class="fc" id="L114">        } catch (Exception e) {</span>
+<span class="fc" id="L115">            log.error(&quot;Error logging transaction to CloudWatch: {}&quot;, e.getMessage(), e);</span>
+<span class="nc" id="L116">        }</span>
+<span class="fc" id="L117">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

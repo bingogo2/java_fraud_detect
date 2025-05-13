@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis  # Name of the Redis service
+  labels:
+    app: redis  # Label to identify the service
+spec:
+  selector:
+    app: redis  # Select pods with the app label 'redis'
+  ports:
+  - protocol: TCP
+    port: 6379  # The port exposed by the service
+    targetPort: 6379  # The port on the Redis container
+  clusterIP: None  # Headless service, allows direct communication between pods

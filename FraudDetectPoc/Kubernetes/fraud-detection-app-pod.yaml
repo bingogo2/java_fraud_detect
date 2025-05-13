@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fraud-detection-app
+  labels:
+    app: fraud-detection-app
+spec:
+  containers:
+    - name: fraud-detection-app
+      image: 183150676580.dkr.ecr.us-east-1.amazonaws.com/bguo/fraud:latest
+      ports:
+        - containerPort: 8081
+  imagePullSecrets:
+    - name: ecr-secret

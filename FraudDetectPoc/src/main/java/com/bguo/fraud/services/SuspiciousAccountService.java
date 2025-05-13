@@ -3,6 +3,7 @@ package com.bguo.fraud.services;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
@@ -34,7 +35,7 @@ public class SuspiciousAccountService {
                 .lines()
                 .filter(line -> !line.isBlank() && !line.startsWith("#"))
                 .map(String::toLowerCase) //save as lower case
-                .toList();
+                .collect(Collectors.toList());
 
             if (!accounts.isEmpty()) {
                 redisTemplate.opsForSet().add(redisKey, accounts.toArray(new String[0]));

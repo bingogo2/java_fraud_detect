@@ -1,5 +1,6 @@
-# Use OpenJDK 21 as the base image
-FROM openjdk:21-jre-slim
+# Use OpenJDK 11 as the base image. failed to get higher 17 nor 21.
+FROM amazoncorretto:21
+
 
 # Ensure we are running as root (default user is root, but for clarity we specify)
 USER root

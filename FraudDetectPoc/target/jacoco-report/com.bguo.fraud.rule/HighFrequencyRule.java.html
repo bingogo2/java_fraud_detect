@@ -23,7 +23,7 @@ public class HighFrequencyRule implements FraudRule {
 <span class="fc" id="L23">            boolean isHighFrequency = highFrequencyService.isHighFrequencyTransaction(tx.getAccountId());</span>
 <span class="fc bfc" id="L24" title="All 2 branches covered.">            if (isHighFrequency) {</span>
 <span class="fc" id="L25">                logger.debug(&quot;Transaction {} exceeds frequency threshold for rule: {}&quot;, tx.getId(), this.getClass().getSimpleName());</span>
-<span class="fc" id="L26">            } else {</span>
+            } else {
 <span class="fc" id="L27">                logger.debug(&quot;Transaction {} is not fraudulent for rule: {}&quot;, tx.getId(), this.getClass().getSimpleName());</span>
             }
 <span class="fc" id="L29">            return isHighFrequency;</span>

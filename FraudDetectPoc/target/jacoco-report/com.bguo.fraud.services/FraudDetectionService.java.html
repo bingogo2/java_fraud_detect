@@ -23,7 +23,7 @@ public class FraudDetectionService {
 <span class="fc" id="L23">                    return rule.apply(tx);</span>
 <span class="nc" id="L24">                } catch (Exception e) {</span>
 <span class="nc" id="L25">                    log.error(&quot;Error applying fraud rule: {} on transaction: {}&quot;, rule.getClass().getSimpleName(),</span>
-<span class="nc" id="L26">                            tx, e);</span>
+                            tx, e);
 <span class="nc" id="L27">                    return false;</span>
                 }
             });
