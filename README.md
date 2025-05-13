@@ -28,34 +28,6 @@ The primary objective of this system is to:
 
 Below is a detailed architecture diagram showing how components interact:
 
-```mermaid
-graph TD
-    A[Incoming Transactions] --> B[(AWS SQS Queue)]
-    B --> C[Fraud Detection Service<br/>(Spring Boot App)]
-    C --> D[AWS CloudWatch Logs & Alerts]
-    C --> E[Redis (Data Caching)]
-    C --> F[Kubernetes (AWS EKS Cluster)]
-    F --> G[EC2 Instances<br/>(Worker Nodes)]
-
-    style C fill:#4CAF50,stroke:#333,color:white
-    style D fill:#2196F3,stroke:#333,color:white
-    style E fill:#FFC107,stroke:#333,color:black
-    style B fill:#FF9800,stroke:#333,color:black
-    style F fill:#9C27B0,stroke:#333,color:white
-    style G fill:#795548,stroke:#333,color:white
-
-💡 System Architecture
-        The system is designed with the following components:
-
-        Fraud Detection API: The API is responsible for receiving transaction data and processing it to detect fraudulent transactions.
-
-        Redis: Used to store and cache transaction data for quick access.
-
-        AWS SQS: Simple Queue Service is used to manage queues for processing incoming transaction data asynchronously, improving performance.
-
-        AWS CloudWatch: Logs fraud detection results to CloudWatch for monitoring and alerting.
-
-The architecture enables high availability, scalability, and efficient processing of large amounts of transactional data.
                                 +--------------------+
                                 |    Fraud Detect    |
                                 |      API Service   |
@@ -87,6 +59,25 @@ The architecture enables high availability, scalability, and efficient processin
                         |       EC2 Instances          |
                         |     (AWS Infrastructure)     |
                         +------------------------------+
+
+💡 System Architecture
+        The system is designed with the following components:
+
+        Fraud Detection API: The API is responsible for receiving transaction data and processing it to detect fraudulent transactions.
+
+        Redis: Used to store and cache transaction data for quick access.
+
+        AWS SQS: Simple Queue Service is used to manage queues for processing incoming transaction data asynchronously, improving performance.
+
+        AWS CloudWatch: Logs fraud detection results to CloudWatch for monitoring and alerting.
+
+        EKS: Run the service on cluster.
+
+        EC2: The whole platform.
+
+
+The architecture enables high availability, scalability, and efficient processing of large amounts of transactional data.
+
 
 
         | Component             | Description                                                                                   |
@@ -186,9 +177,7 @@ The architecture enables high availability, scalability, and efficient processin
             Running Locally
                 Use the dev profile:
                   mvn spring-boot:run -Dspring-boot.run.profiles=dev
-
             or 
-
                   java -jar target/FraudDetectPoc-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev
 
         Running Tests
