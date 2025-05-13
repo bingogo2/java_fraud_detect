@@ -124,6 +124,7 @@ The architecture enables high availability, scalability, and efficient processin
         LocalStack (to simulate AWS services locally)
         JMeter (for load testing)
 📁 Project Structure
+        ```text
         FraudDetectPoc/
         ├── Kubernetes/              # Deployment manifests (.yaml)
         ├── src/
@@ -136,6 +137,7 @@ The architecture enables high availability, scalability, and efficient processin
         │   └── jacoco-report/       # Code coverage reports
         ├── Dockerfile               # Docker build instructions
         └── pom.xml                  # Maven configuration
+        ```
 
 🚀 Setup and Deployment (on AWS EKS)
         1. Clone the repository
